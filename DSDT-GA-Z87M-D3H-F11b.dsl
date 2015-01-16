@@ -271,6 +271,38 @@ DefinitionBlock ("DSDT.aml", "DSDT", 2, "Apple", "iMac", 0x00070001)
             {
                 Name (_ADR, 0x001F0000)  // _ADR: Address
 
+                OperationRegion (SMIE, SystemIO, PMBS, 0x04)
+                Field (SMIE, ByteAcc, NoLock, Preserve)
+                {
+                        ,   10, 
+                    RTCS,   1
+                }
+
+                OperationRegion (SLPR, SystemIO, SMCR, 0x08)
+                Field (SLPR, ByteAcc, NoLock, Preserve)
+                {
+                        ,   4, 
+                    SLPE,   1, 
+                        ,   31, 
+                    SLPX,   1
+                }
+
+                Method (SPTS, 1, NotSerialized)
+                {
+                    Store (One, SLPX)
+                    Store (One, SLPE)
+                }
+
+                Method (SWAK, 1, NotSerialized)
+                {
+                    Store (Zero, SLPE)
+                    If (RTCS) {}
+                    Else
+                    {
+                        Notify (PWRB, 0x02)
+                    }
+                }
+
                 Device (DMAC)
                 {
                     Name (_HID, EisaId ("PNP0200"))  // _HID: Hardware ID
@@ -626,10 +658,16 @@ DefinitionBlock ("DSDT.aml", "DSDT", 2, "Apple", "iMac", 0x00070001)
 
     Method (_PTS, 1, NotSerialized)  // _PTS: Prepare To Sleep
     {
+        If (Arg0)
+        {
+            \_SB.PCI0.LPCB.SPTS (Arg0)
+        }
     }
 
     Method (_WAK, 1, Serialized)  // _WAK: Wake
     {
+        \_SB.PCI0.LPCB.SWAK (Arg0)
+
         Return (Package (0x02)
         {
             Zero, 
