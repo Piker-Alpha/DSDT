@@ -9,7 +9,7 @@ DefinitionBlock ("DSDT.aml", "DSDT", 2, "Apple", "iMac", 0x00070001)
     {
         Offset (0x7B), 
         ECON,   8,     // Embedded Controller Availability Flag.
-        GPIC,   8,     // Global IOAPIC/8259 Interrupt Mode Flag.
+        GPIC,   8      // Global IOAPIC/8259 Interrupt Mode Flag.
     }
 
     OperationRegion (PMIO, SystemIO, 0x1800, 0x80)
@@ -22,15 +22,21 @@ DefinitionBlock ("DSDT.aml", "DSDT", 2, "Apple", "iMac", 0x00070001)
 
     Scope (_PR)
     {
+        // You may have/need 8 for your processor!
         Processor (CPU0, 0x01, 0x00000410, 0x06) {}
         Processor (CPU1, 0x02, 0x00000410, 0x06) {}
         Processor (CPU2, 0x03, 0x00000410, 0x06) {}
         Processor (CPU3, 0x04, 0x00000410, 0x06) {}
+        /* You may need 4 more for your processor!
+        Processor (CPU4, 0x05, 0x00001810, 0x06) {}
+        Processor (CPU5, 0x06, 0x00001810, 0x06) {}
+        Processor (CPU6, 0x07, 0x00001810, 0x06) {}
+        Processor (CPU7, 0x08, 0x00001810, 0x06) {} */
     }
 
     Scope (_SB)
     {
-        Device (MEM2)
+        Device (MEM2) // Optionally, required when the IGPU is enabled in the BIOS
         {
             Name (_HID, EisaId ("PNP0C01"))
             Name (_UID, 0x02)
@@ -49,40 +55,35 @@ DefinitionBlock ("DSDT.aml", "DSDT", 2, "Apple", "iMac", 0x00070001)
             Name (_BBN, Zero)
             Name (_CID, EisaId ("PNP0A03"))  // _CID: Compatible ID
             Name (_HID, EisaId ("PNP0A08"))  // _HID: Hardware ID
-
-            Method (_PRT, 0, NotSerialized)  // _PRT: PCI Routing Table (AR00)
+            Name (_PRT, Package (0x1A)  // _PRT: PCI Routing Table (AR00)
             {
-                Return (Package (0x1A)
-                {
-                    Package (0x04) { 0x001FFFFF, Zero, Zero, 0x15 }, 
-                    Package (0x04) { 0x001FFFFF,  One, Zero, 0x13 }, 
-                    Package (0x04) { 0x001FFFFF, 0x02, Zero, 0x12 }, 
-                    Package (0x04) { 0x001FFFFF, 0x03, Zero, 0x10 }, 
-                    Package (0x04) { 0x0014FFFF, Zero, Zero, 0x10 }, 
-                    Package (0x04) { 0x001DFFFF, Zero, Zero, 0x17 }, 
-                    Package (0x04) { 0x001AFFFF, Zero, Zero, 0x10 }, 
-                    Package (0x04) { 0x001BFFFF, Zero, Zero, 0x16 }, 
-                    Package (0x04) { 0x0016FFFF, Zero, Zero, 0x10 }, 
-                    Package (0x04) { 0x0016FFFF,  One, Zero, 0x13 }, 
-                    Package (0x04) { 0x0016FFFF, 0x02, Zero, 0x12 }, 
-                    Package (0x04) { 0x0016FFFF, 0x03, Zero, 0x11 }, 
-                    Package (0x04) { 0x001CFFFF, Zero, Zero, 0x10 }, 
-                    Package (0x04) { 0x001CFFFF,  One, Zero, 0x11 }, 
-                    Package (0x04) { 0x001CFFFF, 0x02, Zero, 0x12 }, 
-                    Package (0x04) { 0x001CFFFF, 0x03, Zero, 0x13 }, 
-                    Package (0x04) { 0x0001FFFF, Zero, Zero, 0x10 }, 
-                    Package (0x04) { 0x0001FFFF,  One, Zero, 0x11 }, 
-                    Package (0x04) { 0x0001FFFF, 0x02, Zero, 0x12 }, 
-                    Package (0x04) { 0x0001FFFF, 0x03, Zero, 0x13 }, 
-                    Package (0x04) { 0x0002FFFF, Zero, Zero, 0x10 }, 
-                    Package (0x04) { 0x0003FFFF, Zero, Zero, 0x10 }, 
-                    Package (0x04) { 0x0004FFFF, Zero, Zero, 0x10 }, 
-                    Package (0x04) { 0x0004FFFF,  One, Zero, 0x11 }, 
-                    Package (0x04) { 0x0004FFFF, 0x02, Zero, 0x12 }, 
-                    Package (0x04) { 0x0004FFFF, 0x03, Zero, 0x13 }
-                })
-            }
-
+                Package (0x04) { 0x001FFFFF, Zero, Zero, 0x15 }, 
+                Package (0x04) { 0x001FFFFF,  One, Zero, 0x13 }, 
+                Package (0x04) { 0x001FFFFF, 0x02, Zero, 0x12 }, 
+                Package (0x04) { 0x001FFFFF, 0x03, Zero, 0x10 },
+                Package (0x04) { 0x0014FFFF, Zero, Zero, 0x10 }, // XHC1
+                Package (0x04) { 0x001DFFFF, Zero, Zero, 0x17 }, // EHC1
+                Package (0x04) { 0x001AFFFF, Zero, Zero, 0x10 }, // EHC2
+                Package (0x04) { 0x001BFFFF, Zero, Zero, 0x16 }, // HDEF
+                Package (0x04) { 0x0016FFFF, Zero, Zero, 0x10 },
+                Package (0x04) { 0x0016FFFF,  One, Zero, 0x13 }, 
+                Package (0x04) { 0x0016FFFF, 0x02, Zero, 0x12 }, 
+                Package (0x04) { 0x0016FFFF, 0x03, Zero, 0x11 }, 
+                Package (0x04) { 0x001CFFFF, Zero, Zero, 0x10 }, // RP0n
+                Package (0x04) { 0x001CFFFF,  One, Zero, 0x11 }, // RP0n 
+                Package (0x04) { 0x001CFFFF, 0x02, Zero, 0x12 }, // RP0n
+                Package (0x04) { 0x001CFFFF, 0x03, Zero, 0x13 }, // RP0n
+                Package (0x04) { 0x0001FFFF, Zero, Zero, 0x10 }, // PEG0
+                Package (0x04) { 0x0001FFFF,  One, Zero, 0x11 }, // PEG0 
+                Package (0x04) { 0x0001FFFF, 0x02, Zero, 0x12 }, // PEG0
+                Package (0x04) { 0x0001FFFF, 0x03, Zero, 0x13 }, // PEG0
+                Package (0x04) { 0x0002FFFF, Zero, Zero, 0x10 }, // IGPU 
+                Package (0x04) { 0x0003FFFF, Zero, Zero, 0x10 }, // HDAU
+                Package (0x04) { 0x0004FFFF, Zero, Zero, 0x10 }, 
+                Package (0x04) { 0x0004FFFF,  One, Zero, 0x11 }, 
+                Package (0x04) { 0x0004FFFF, 0x02, Zero, 0x12 }, 
+                Package (0x04) { 0x0004FFFF, 0x03, Zero, 0x13 }
+            })
             Name (_CRS, ResourceTemplate ()
             {
                 IO (Decode16, 0x0CF8, 0x0CF8, 0x01, 0x08, )
@@ -115,14 +116,14 @@ DefinitionBlock ("DSDT.aml", "DSDT", 2, "Apple", "iMac", 0x00070001)
                     Memory32Fixed (ReadWrite, 0xFED1C000, 0x00004000, )
                     Memory32Fixed (ReadWrite, 0xFED10000, 0x00008000, )
                     Memory32Fixed (ReadWrite, 0xFED18000, 0x00001000, )
-                    Memory32Fixed (ReadWrite, 0xFED18000, 0x00001000, )
+                    Memory32Fixed (ReadWrite, 0xFED19000, 0x00001000, )
                     Memory32Fixed (ReadWrite, 0xF8000000, 0x40000000, )
                     Memory32Fixed (ReadWrite, 0xFED20000, 0x00020000, )
                     Memory32Fixed (ReadOnly,  0xFED90000, 0x00004000, )
                     Memory32Fixed (ReadWrite, 0xFED45000, 0x0004B000, )
                     Memory32Fixed (ReadOnly,  0xFF000000, 0x01000000, )
                     Memory32Fixed (ReadOnly,  0xFEE00000, 0x00100000, )
-                    Memory32Fixed (ReadWrite, 0xFFFFFFFF, 0x00001000, )
+                    Memory32Fixed (ReadWrite, 0xF7FDF000, 0x00001000, )
                     Memory32Fixed (ReadWrite, 0xF7FE0000, 0x00010000, )
                 })
             }
@@ -135,6 +136,39 @@ DefinitionBlock ("DSDT.aml", "DSDT", 2, "Apple", "iMac", 0x00070001)
             Device (IGPU)
             {
                 Name (_ADR, 0x00020000)
+            }
+
+
+            Device (PEG0) // Can be removed/renamed to P0P2 if SSDT tables are dropped
+            {
+                Name (_ADR, 0x00010000)  // _ADR: Address
+                Name (_PRW, Package (0x02)  // _PRW: Power Resources for Wake
+                {
+                    0x0D,
+                    0x04
+                })
+                Name (_PRT, Package (0x04)  // _PRT: PCI Routing Table
+                {
+                    Package (0x04) { 0xFFFF, Zero, Zero, 0x10 },
+                    Package (0x04) { 0xFFFF,  One, Zero, 0x11 },
+                    Package (0x04) { 0xFFFF, 0x02, Zero, 0x12 },
+                    Package (0x04) { 0xFFFF, 0x03, Zero, 0x13 }
+                })
+
+                /* Device (GFX0) // Optional, for GPU card.
+                {
+                    Name (_ADR, Zero)  // _ADR: Address
+                    Name (_PRW, Package (0x02)  // _PRW: Power Resources for Wake
+                    {
+                        0x09,
+                        0x04
+                    })
+                }
+
+                Device (HDAU) // Optional, Audio for GPU card.
+                {
+                    Name (_ADR, One)  // _ADR: Address
+                }
             }
 
             Device (HDAU)
@@ -184,6 +218,33 @@ DefinitionBlock ("DSDT.aml", "DSDT", 2, "Apple", "iMac", 0x00070001)
                    0x0D, 
                    0x04
                 })
+
+                Method (_DSM, 4, NotSerialized)  // _DSM: Device-Specific Method
+                {
+                    If (LEqual (Arg2, Zero))
+                    {
+                        Return (Buffer (One)
+                        {
+                            0x03
+                        })
+                    }
+
+                    Return (Package (0x09)
+                    {
+                        "AAPL,current-available", 
+                        0x0834, 
+                        "AAPL,current-extra", 
+                        0x0A8C, 
+                        "AAPL,current-extra-in-sleep", 
+                        0x0A8C, 
+                        "AAPL,max-port-current-in-sleep", 
+                        0x0834, 
+                        Buffer (One)
+                        {
+                             0x00
+                        }
+                    })
+                }
 
                 Device (RHUB)
                 {
@@ -267,6 +328,10 @@ DefinitionBlock ("DSDT.aml", "DSDT", 2, "Apple", "iMac", 0x00070001)
                     Name (_CRS, ResourceTemplate ()  // _CRS: Current Resource Settings
                     {
                         Memory32Fixed (ReadWrite, 0xFED00000, 0x00000400 )
+                        IRQNoFlags ()
+                            {0}
+                        IRQNoFlags ()
+                            {8}
                     })
                 }
 
@@ -328,10 +393,10 @@ DefinitionBlock ("DSDT.aml", "DSDT", 2, "Apple", "iMac", 0x00070001)
                         IO (Decode16, 0xFFFF, 0xFFFF, 0x01, 0x01, )
                         IO (Decode16, 0xFFFF, 0xFFFF, 0x01, 0x01, )
                         IO (Decode16, 0xFFFF, 0xFFFF, 0x01, 0x01, )
-                        IO (Decode16, 0x1C00, 0x1C00, 0x01, 0xFF, )
-                        IO (Decode16, 0x1D00, 0x1D00, 0x01, 0xFF, )
-                        IO (Decode16, 0x1E00, 0x1E00, 0x01, 0xFF, )
-                        IO (Decode16, 0x1F00, 0x1F00, 0x01, 0xFF, )
+                        IO (Decode16, 0x1C00, 0x1C00, 0x01, 0xFF, ) // Name (GPBS, 0x1C00)
+                        IO (Decode16, 0x1D00, 0x1D00, 0x01, 0xFF, ) // GPBS + 0x100 = 0x1D00
+                        IO (Decode16, 0x1E00, 0x1E00, 0x01, 0xFF, ) // GPBS + 0x200 = 0x1E00
+                        IO (Decode16, 0x1F00, 0x1F00, 0x01, 0xFF, ) // GPBS + 0x300 = 0x1F00
                         IO (Decode16, 0x1800, 0x1800, 0x01, 0xFF, )
                         IO (Decode16, 0x164E, 0x164E, 0x01, 0x02, )
                     })
@@ -396,68 +461,50 @@ DefinitionBlock ("DSDT.aml", "DSDT", 2, "Apple", "iMac", 0x00070001)
                 {
                     Name (_CID, "smbus")  // _CID: Compatible ID
                     Name (_ADR, Zero)  // _ADR: Address
-                    Device (DVL0)
-                    {
-                        Name (_ADR, 0x57)  // _ADR: Address
-                        Name (_CID, "diagsvault")  // _CID: Compatible ID
-                    }
+                }
+                Device (BUS1)
+                {
+                    Name (_CID, "smbus")  // _CID: Compatible ID
+                    Name (_ADR, One)  // _ADR: Address
                 }
             }
 
-            Device (PEG0)
+            Device (RP01) // May not be enabled on other motherboards 
             {
-                Name (_ADR, 0x00010000)  // _ADR: Address
-                Name (_PRW, Package (0x02)  // _PRW: Power Resources for Wake
+                Name (_ADR, 0x001C0000)  // _ADR: Address
+                Name (_PRT, Package (0x04)  // _PRT: PCI Routing Table (AR04)
                 {
-                    0x0D,
-                    0x04
-                })
-                Name (_PRT, Package (0x04)  // _PRT: PCI Routing Table
-                {
-                    Package (0x04) { 0xFFFF, Zero, Zero, 0x10 },
+                    Package (0x04) { 0xFFFF, Zero, Zero, 0x10 }, 
                     Package (0x04) { 0xFFFF,  One, Zero, 0x11 },
                     Package (0x04) { 0xFFFF, 0x02, Zero, 0x12 },
                     Package (0x04) { 0xFFFF, 0x03, Zero, 0x13 }
                 })
             }
 
-            Device (RP01)
-            {
-                Name (_ADR, 0x001C0000)  // _ADR: Address
-  
-                Method (_PRT, 0, NotSerialized)  // _PRT: PCI Routing Table (AR04)
-                {
-                    Return (Package (0x04)
-                    {
-                        Package (0x04) { 0xFFFF, Zero, Zero, 0x10 }, 
-                        Package (0x04) { 0xFFFF,  One, Zero, 0x11 },
-                        Package (0x04) { 0xFFFF, 0x02, Zero, 0x12 },
-                        Package (0x04) { 0xFFFF, 0x03, Zero, 0x13 }
-                    })
-                }
-            }
-
-            Device (RP02)
+            Device (RP02) // May not be enabled on other motherboards
             {
                 Name (_ADR, 0x001C0001)  // _ADR: Address
-
-                Method (_PRT, 0, NotSerialized)  // _PRT: PCI Routing Table (AR05)
+                Name (_PRT, Package (0x04)  // _PRT: PCI Routing Table (AR05)
                 {
-                    Return (Package (0x04)
-                    {
-                        Package (0x04) { 0xFFFF, Zero, Zero, 0x11 }, 
-                        Package (0x04) { 0xFFFF,  One, Zero, 0x12 },
-                        Package (0x04) { 0xFFFF, 0x02, Zero, 0x13 }, 
-                        Package (0x04) { 0xFFFF, 0x03, Zero, 0x10 }
-                    })
-                }
+                    Package (0x04) { 0xFFFF, Zero, Zero, 0x11 }, 
+                    Package (0x04) { 0xFFFF,  One, Zero, 0x12 },
+                    Package (0x04) { 0xFFFF, 0x02, Zero, 0x13 }, 
+                    Package (0x04) { 0xFFFF, 0x03, Zero, 0x10 }
+                })
             }
 
-            Device (RP03)
+            Device (RP03) // May not be enabled on other motherboards
             {
                 Name (_ADR, 0x001C0002)  // _ADR: Address
-                
-                Device (GIGE)
+                Name (_PRT, Package (0x04)  // _PRT: PCI Routing Table (AR06)
+                {
+                    Package (0x04) { 0xFFFF, Zero, Zero, 0x12 },
+                    Package (0x04) { 0xFFFF,  One, Zero, 0x13 }, 
+                    Package (0x04) { 0xFFFF, 0x02, Zero, 0x10 }, 
+                    Package (0x04) { 0xFFFF, 0x03, Zero, 0x11 }
+                })
+
+                Device (GIGE) // Can be in another spot on other motherboards
                 {
                     Name (_ADR, Zero)  // _ADR: Address
                     Name (_PRW, Package (0x02)  // _PRW: Power Resources for Wake
@@ -466,57 +513,38 @@ DefinitionBlock ("DSDT.aml", "DSDT", 2, "Apple", "iMac", 0x00070001)
                         0x04
                     })
                 }
-
-                Method (_PRT, 0, NotSerialized)  // _PRT: PCI Routing Table (AR06)
-                {
-                    Return (Package (0x04)
-                    {
-                        Package (0x04) { 0xFFFF, Zero, Zero, 0x12 },
-                        Package (0x04) { 0xFFFF,  One, Zero, 0x13 }, 
-                        Package (0x04) { 0xFFFF, 0x02, Zero, 0x10 }, 
-                        Package (0x04) { 0xFFFF, 0x03, Zero, 0x11 }
-                    })
-                }
             }
 
-            Device (RP04)
+            Device (RP04) // May not be enabled on other motherboards
             {
                 Name (_ADR, 0x001C0003)  // _ADR: Address
-
-                Method (_PRT, 0, NotSerialized)  // _PRT: PCI Routing Table (AR07)
+                Name (_PRT, Package (0x04)  // _PRT: PCI Routing Table (AR07)
                 {
-                    Return (Package (0x04)
-                    {
-                        Package (0x04) { 0xFFFF, Zero, Zero, 0x13 }, 
-                        Package (0x04) { 0xFFFF,  One, Zero, 0x10 }, 
-                        Package (0x04) { 0xFFFF, 0x02, Zero, 0x11 }, 
-                        Package (0x04) { 0xFFFF, 0x03, Zero, 0x12 }
-                    })
-                }
+                    Package (0x04) { 0xFFFF, Zero, Zero, 0x13 }, 
+                    Package (0x04) { 0xFFFF,  One, Zero, 0x10 }, 
+                    Package (0x04) { 0xFFFF, 0x02, Zero, 0x11 }, 
+                    Package (0x04) { 0xFFFF, 0x03, Zero, 0x12 }
+                })
             }
 
-            Device (RP05)
+            Device (RP05) // May not be enabled on other motherboards
             {
                 Name (_ADR, 0x001C0004)  // _ADR: Address
-                
-                Device (ARPT)
+                Name (_PRT, Package (0x04)  // _PRT: PCI Routing Table (AR08)
+                {
+                    Package (0x04) { 0xFFFF, Zero, Zero, 0x10 },
+                    Package (0x04) { 0xFFFF,  One, Zero, 0x11 },
+                    Package (0x04) { 0xFFFF, 0x02, Zero, 0x12 },
+                    Package (0x04) { 0xFFFF, 0x03, Zero, 0x13 }
+                })
+
+                Device (ARPT) // Optional PCIe card with BCM4360 WiFi/Bluetooth module
                 {
                     Name (_ADR, Zero)  // _ADR: Address
                     Name (_PRW, Package (0x02)  // _PRW: Power Resources for Wake
                     {
                         0x09, 
                         0x04
-                    })
-                }
-
-                Method (_PRT, 0, NotSerialized)  // _PRT: PCI Routing Table (AR08)
-                {
-                    Return (Package (0x04)
-                    {
-                        Package (0x04) { 0xFFFF, Zero, Zero, 0x10 },
-                        Package (0x04) { 0xFFFF,  One, Zero, 0x11 },
-                        Package (0x04) { 0xFFFF, 0x02, Zero, 0x12 },
-                        Package (0x04) { 0xFFFF, 0x03, Zero, 0x13 }
                     })
                 }
             }
@@ -532,6 +560,12 @@ DefinitionBlock ("DSDT.aml", "DSDT", 2, "Apple", "iMac", 0x00070001)
                 0x1D, 
                 0x03
             })
+        }
+
+        Device (SLPB)
+        {
+            Name (_HID, EisaId ("PNP0C0E"))  // _HID: Hardware ID
+            Name (_STA, 0x0B)  // _STA: Status
         }
     }
 
@@ -549,6 +583,9 @@ DefinitionBlock ("DSDT.aml", "DSDT", 2, "Apple", "iMac", 0x00070001)
             Notify (\_SB.PCI0.RP03, 0x02)
             Notify (\_SB.PCI0.RP04, 0x02)
             Notify (\_SB.PCI0.RP05, 0x02)
+            /* Optional PEG0/P0P2 notification
+            Notify (\_SB.PCI0.PEG0, 0x02)
+            Notify (\_SB.PCI0.P0P2, 0x02) */
             Notify (\_SB.PCI0.RP03.GIGE, 0x02)
             Notify (\_SB.PCI0.RP05.ARPT, 0x02)
         }
@@ -563,9 +600,9 @@ DefinitionBlock ("DSDT.aml", "DSDT", 2, "Apple", "iMac", 0x00070001)
 
         /* Method (_L01, 0, NotSerialized)  // _Lxx: Level-Triggered GPE
         {
-            // Add (L01C, One, L01C)
-            // P8XH (Zero, One)
-            // P8XH (One, L01C)
+            Add (L01C, One, L01C)
+            P8XH (Zero, One)
+            P8XH (One, L01C)
         } */
 
         Method (_L02, 0, NotSerialized)  // _Lxx: Level-Triggered GPE
@@ -575,15 +612,10 @@ DefinitionBlock ("DSDT.aml", "DSDT", 2, "Apple", "iMac", 0x00070001)
 
         /* Method (_L06, 0, NotSerialized)  // _Lxx: Level-Triggered GPE
         {
-            If (LAnd (\_SB.PCI0.IGPU.GSSE, LNot (GSMI)))
-            {
-                \_SB.PCI0.IGPU.GSCI ()
-            }
         }
 
         Method (_L07, 0, NotSerialized)  // _Lxx: Level-Triggered GPE
         {
-            // Store (0x20, \_SB.PCI0.SBUS.HSTS)
         } */
     }
 
