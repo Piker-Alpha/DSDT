@@ -4,6 +4,9 @@
 
 DefinitionBlock ("DSDT.aml", "DSDT", 2, "Apple", "iMac", 0x00070001)
 {
+    Name (PMBS, 0x1800)
+    Name (SMCR, 0x1830)
+
     OperationRegion (GNVS, SystemMemory, 0xDB742C18, 0x7D)
     Field (GNVS, AnyAcc, Lock, Preserve)
     {
@@ -168,7 +171,7 @@ DefinitionBlock ("DSDT.aml", "DSDT", 2, "Apple", "iMac", 0x00070001)
                 Device (HDAU) // Optional, Audio for GPU card.
                 {
                     Name (_ADR, One)  // _ADR: Address
-                }
+                } */
             }
 
             Device (HDAU)
