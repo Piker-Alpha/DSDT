@@ -29,6 +29,7 @@ DefinitionBlock ("SSDT-GA-Z87MX-D3G-F6.aml", "SSDT", 1, "APPLE", "tinySSDT", 0x0
     External (\_SB_.PCI0.B0D3._STA, IntObj)
     External (\_SB_.PCI0.B0D4, DeviceObj)
     External (\_SB_.PCI0.GFX0, DeviceObj)
+    External (\_SB_.PCI0.HDEF, DeviceObj)
     External (\_SB_.PCI0.LPCB, DeviceObj)
     External (\_SB_.PCI0.LPCB.SIO1, DeviceObj)
     External (\_SB_.PCI0.RP05, DeviceObj)
@@ -194,7 +195,7 @@ DefinitionBlock ("SSDT-GA-Z87MX-D3G-F6.aml", "SSDT", 1, "APPLE", "tinySSDT", 0x0
         {
             /* Here we inject a new Method (_DSM) */
 
-            Method (_DSM, 4, Serialized)
+            Method (_DSM, 4, NotSerialized)
             {
                 If (LEqual (Arg2, Zero))
                 {
