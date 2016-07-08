@@ -10,7 +10,7 @@
  *          devices in the DSDT, including ThermalZones. Something that was impossible until now.
  */
 
-DefinitionBlock ("SSDT.aml", "SSDT-GA-Z87MX-D3G-F7.aml", 1, "APPLE", "tinySSDT", 0x00000006)
+DefinitionBlock ("SSDT-GA-Z87MX-D3H-F7.aml", "SSDT", 1, "APPLE", "tinySSDT", 0x00000006)
 {
     External (\IOST, IntObj)
 
