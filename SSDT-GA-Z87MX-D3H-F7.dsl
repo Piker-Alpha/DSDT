@@ -211,7 +211,7 @@ DefinitionBlock ("SSDT-GA-Z87MX-D3H-F7.aml", "SSDT", 1, "APPLE", "tinySSDT", 0x0
                     "layout-id",
                     Buffer (0x04)
                     {
-                        0x01, 0x00, 0x00, 0x00
+                        0x03, 0x00, 0x00, 0x00
                     },
 
                     "PinConfigurations",
